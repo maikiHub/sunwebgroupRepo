@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Animated Countdown Ticker</title>
+  <!-- Include General Sans font. Ensure font files at fonts/GeneralSans-*.woff2/.woff -->
+  <style>
+    /* Hide any scrollbars */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { overflow: hidden; }
+    @font-face {
+      font-family: 'General Sans';
+      src: url('fonts/GeneralSans-Regular.woff2') format('woff2'),
+           url('fonts/GeneralSans-Regular.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+    /* Set exact iframe dimensions on body for consistent embedding */
+    body {
+      width: 300.862px;
+      height: 169.235px;
+      background: rgb(54,47,47);
+      font-family: 'General Sans', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .ticker-wrapper {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      color: rgb(204,20,33);
+      padding: 2px;
+      text-align: center;
+      position: relative;
+    }
+    #label {
+      font-size: 25px;
+      margin: 0.5em 0 0.2em;
+    }
+    .ticker {
+      display: flex;
+      justify-content: center;
+      gap: 0.5em;
+      perspective: 1000px;
+    }
+    .digit {
+      width: 2em;
+      height: 2em;
+      line-height: 2em;
+      background-color: rgb(54,47,47);
+      color: rgb(204,20,33);
+      border: 2px solid rgb(204,20,33);
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      display: inline-block;
+      font-size: 2em;
+      font-weight: bold;
+      /* Explicit inline animation property */
+      animation-name: flip;
+      animation-duration: 0.7s;
+      animation-timing-function: ease-in-out;
+    }
+    @keyframes flip {
+      0% { transform: rotateX(0deg); }
+      50% { transform: rotateX(-90deg); }
+      100% { transform: rotateX(0deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="ticker-wrapper">
+    <h1 id="label">DAYS TO GO</h1>
+    <div class="ticker" id="salesTicker"></div>
+  </div>
+
+  <script>
+    // Countdown configuration
+    const startDate = new Date("2025-05-28T00:00:00");
+    const endDate = new Date("2025-11-01T00:00:00");
+    const paxToGo = 112899;
+    let state = 0;
+
+    // Calculate days remaining (clamped at start)
+    function getDaysToGo() {
+      let now = new Date();
+      if (now < startDate) now = startDate;
+      const diff = endDate - now;
+      return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    }
+
+    // Render digits and trigger flip animation on each new element
+    function updateTicker(value, digitsCount) {
+      const container = document.getElementById('salesTicker');
+      container.innerHTML = '';
+      String(value).padStart(digitsCount, '0').split('').forEach((num, idx) => {
+        const d = document.createElement('div');
+        d.className = 'digit';
+        d.textContent = num;
+        // Force restart of animation
+        d.style.animationDirection = (idx % 2 === 0 ? 'normal' : 'reverse');
+        container.appendChild(d);
+      });
+    }
+
+    // Switch between days and pax views every 10 seconds
+    function toggleFrame() {
+      const label = document.getElementById('label');
+      if (state === 0) {
+        label.textContent = 'DAYS TO GO';
+        updateTicker(getDaysToGo(), 3);
+      } else {
+        label.textContent = 'PAX TO GO';
+        updateTicker(paxToGo, 6);
+      }
+      state = (state + 1) % 2;
+    }
+
+    // Initialize and start loop
+    toggleFrame();
+    setInterval(toggleFrame, 10000);
+  </script>
+</body>
+</html>
